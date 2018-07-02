@@ -1,4 +1,4 @@
-.App-header {
+.header-banner {
   background-color: #222;
   height: 150px;
   padding: 20px;
@@ -9,12 +9,13 @@
   vertical-align: middle;
 }
 
-.App-title {
+.header-title {
   font-size: 3.5em;
   margin-left: 20px;
   display: inline-block;
 }
 
-.App-intro {
-  font-size: large;
+.app-form {
+  padding-top: 10px;
+  border-right: 1px solid #bbb;
 }
