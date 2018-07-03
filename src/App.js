@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FormGroup, FormControl, ControlLabel, Table, InputGroup, Glyphicon } from 'react-bootstrap';
-import {getMask, getMaskAddress, getNetwork, nextNetwork, getBroadcast} from './Network.js';
+import {getMask, getMaskAddress, nextNetwork, getBroadcast} from './Network.js';
 import './App.css';
 
 class App extends Component {
@@ -10,24 +10,23 @@ class App extends Component {
     this.handleNetworkChange = this.handleNetworkChange.bind(this);
     this.handleHostsChange = this.handleHostsChange.bind(this);
     this.handleHostsClick = this.handleHostsClick.bind(this);
+    this.handleItemHeaderClick = this.handleItemHeaderClick.bind(this);
 
     this.state = {
-      network: '',
+      network: '192.168.1.0',
       networktmp: '',
       networkError: true,
       hosts: [],
       host: '',
-      
+      errors: {
+        network: false,
+        host: false
+      }
     };
   }
 
   handleNetworkChange(e) {
     // var re = /\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b/;
-    // if( re.test(network)) {
-    //   this.setState({ network: network, networkError: false });
-    // } else {
-    //   this.setState({ networkError:true, networktmp: e.target.value});
-    // }
     this.setState({ network: e.target.value });
   }
 
@@ -38,30 +37,54 @@ class App extends Component {
 
   handleHostsClick(e) {
     let {hosts,host} = this.state;
-    hosts.push(parseInt(host));
+    hosts.push(parseInt(host, 10));
     this.setState({ hosts: hosts, host: '' });
   }
 
+  handleItemHeaderClick(e) {
+    this.setState({ hosts: []});
+  }
+
+  handleItemClick = idx => e => {
+    let {hosts} = this.state;
+    hosts.splice(idx, 1);
+    this.setState({ hosts: hosts});
+  }
+
+  executeCalc() {
+    const {network, hosts} = this.state;
+    let networkAddress = network;
+    return hosts
+      .sort((a,b) => a < b)
+      .map((h) => {
+        let mask = getMask(h);
+        let address = networkAddress;
+        let maskAddress = getMaskAddress(mask);
+        let broadcastAddress = getBroadcast(networkAddress, mask);
+        networkAddress = nextNetwork(broadcastAddress);
+        return { 
+          hosts: h, 
+          mask: maskAddress + "/" + mask, 
+          network: address, 
+          broadcast: broadcastAddress
+        }
+      });
+  }
+
   render() {
-    const {network, hosts, host} = this.state;
-    let hostNetwork = network;
-    let first = true;
-    let _hosts = hosts
-    .sort((a,b) => a < b)
-    .map((h) => {
-      let mask = getMask(h);
-      let maskAddress = getMaskAddress(mask);
-      let _hostNetwork = getNetwork(hostNetwork, mask, first);
-      let broadcastAddress = getBroadcast(hostNetwork, mask);
-      hostNetwork = nextNetwork(broadcastAddress);
-      first = false;
-      return (<tr>
-        <td>{h}</td>
-        <td>{maskAddress}/{mask}</td>
-        <td>{_hostNetwork}</td>
-        <td>{broadcastAddress}</td>
+    const {network, host} = this.state;
+    let _hosts = this.executeCalc().map( (item, i) => {
+      //console.log(item);
+      return (<tr key={i}>
+        <td>{item.hosts}</td>
+        <td>{item.mask}</td>
+        <td>{item.network}</td>
+        <td>{item.broadcast}</td>
+        <td><a onClick={this.handleItemClick(i)} data-id={i}><Glyphicon glyph="trash" /></a></td>
       </tr>)
     });
+   
+
     return (
       <div className="App">
         <div className="container">
@@ -69,7 +92,7 @@ class App extends Component {
             <h1 className="header-title">Subnet Calc v1</h1>
           </div>
           <div className="row">
-            <div className="app-form col-sm-4">
+            <div className="app-form col-sm-3">
               <div className="row">
                 <form>
                   <FormGroup className="col-sm-12">
@@ -81,14 +104,14 @@ class App extends Component {
                     <InputGroup>
                     <FormControl type="text" value={host} placeholder="Hosts" onChange={this.handleHostsChange} />
                     <InputGroup.Addon>
-                      <Glyphicon glyph="plus-sign" onClick={this.handleHostsClick} />
+                      <a onClick={this.handleHostsClick}><Glyphicon glyph="plus-sign" /></a>
                     </InputGroup.Addon>
                     </InputGroup>
                   </FormGroup>
                 </form>
               </div>
             </div>
-            <div className="col-sm-6">
+            <div className="col-sm-9">
               <Table>
               <thead>
                 <tr>
@@ -96,6 +119,7 @@ class App extends Component {
                   <th>Mask</th>
                   <th>Network</th>
                   <th>Broadcast</th>
+                  <th><a onClick={this.handleItemHeaderClick}><Glyphicon glyph="trash" /></a></th>
                 </tr>
               </thead>
               <tbody>

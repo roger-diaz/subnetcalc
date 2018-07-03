@@ -5,10 +5,6 @@ const HostByMask = [
     33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, 2147483648
 ];
 
-function toNumber(str) {
-    return parseInt(str);
-}
-
 export function getMask(hosts) {
     let mask = 30;
     for (let i = 0; i < HostByMask.length; i++) {
@@ -23,10 +19,6 @@ export function getMask(hosts) {
 
 export function getMaskAddress(mask) {
     return inet_ntoa(subnet_netmask(mask));
-}
-
-export function getNetwork(ip, mask) {
-    return ip;
 }
 
 export function getBroadcast(ip, mask) {
@@ -62,7 +54,6 @@ function inet_aton(addrstr) {
 }
 
 function network_address(ip, mask) {
-    var maskbits = 0;
     for (var i = 31 - mask; i >= 0; i--) {
         ip &= ~1 << i;
     }

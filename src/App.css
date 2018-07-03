@@ -19,3 +19,7 @@
   padding-top: 10px;
   border-right: 1px solid #bbb;
 }
+
+.error {
+  border: 1px solid red;  
+}
